@@ -2,6 +2,10 @@ NAME
     Devel::Declare -
 
 SYNOPSIS
+    Look at the tests. This module is currently on CPAN to ease smoke
+    testing and allow early adopters who've been involved in the design to
+    experiment with it.
+
 DESCRIPTION
   import
       use Devel::Declare qw(list of subs);
