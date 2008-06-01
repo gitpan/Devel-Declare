@@ -1,5 +1,10 @@
 Changes for Devel-Declare
 
+0.001007
+  - bail on SvGROW during declare process since that can't work
+  - use a source filter on files and an op wrap on evals to pre-grow
+    PL_linestr so we don't get to the point of needing to bail
+
 0.001006
   - nasty goto &$func hack to avoid :lvalue+list context weirdness
   - correct SvGROW invocation

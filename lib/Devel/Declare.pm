@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.008001;
 
-our $VERSION = '0.001006';
+our $VERSION = '0.001007';
 
 # mirrored in Declare.xs as DD_HANDLE_*
 
@@ -63,17 +63,16 @@ sub teardown_for {
   my ($class, $target) = @_;
   delete $declarators{$target};
   delete $declarator_handlers{$target};
-  teardown();
 }
 
 my $temp_name;
 my $temp_save;
 
 sub init_declare {
-  my ($usepack, $use, $inpack, $name, $proto) = @_;
+  my ($usepack, $use, $inpack, $name, $proto, $traits) = @_;
   my ($name_h, $XX_h, $extra_code)
        = $declarator_handlers{$usepack}{$use}->(
-           $usepack, $use, $inpack, $name, $proto, defined(wantarray)
+           $usepack, $use, $inpack, $name, $proto, defined(wantarray), $traits
          );
   ($temp_name, $temp_save) = ([], []);
   if ($name) {
@@ -165,8 +164,8 @@ sub setup_declarators {
     $setup_for_args{$name} = [
       $flags,
       sub {
-        my ($usepack, $use, $inpack, $name, $proto, $shift_hashref) = @_;
-        my $extra_code = $compile->($name, $proto);
+        my ($usepack, $use, $inpack, $name, $proto, $shift_hashref, $traits) = @_;
+        my $extra_code = $compile->($name, $proto, $traits);
         my $main_handler = sub { shift if $shift_hashref;
           ("DONE", $run->($name, $proto, @_));
         };
