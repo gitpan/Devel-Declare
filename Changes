@@ -1,5 +1,9 @@
 Changes for Devel-Declare
 
+0.001008
+  - turns out 0.1.7 in Makefile.PL results in that version going into
+    the .xs file as well as the dist name. Then everything breaks.
+
 0.001007
   - bail on SvGROW during declare process since that can't work
   - use a source filter on files and an op wrap on evals to pre-grow
