@@ -1,5 +1,10 @@
 Changes for Devel-Declare
 
+0.001009
+  - only mangle evals if o->op_ppaddr is actually PL_ppaddr[OP_ENTERVAL]
+  - don't set OPf_SPECIAL on entereval ops, mistaken cargo cult from autobox
+  - fix traits code to work on older 5.8.x perls
+
 0.001008
   - turns out 0.1.7 in Makefile.PL results in that version going into
     the .xs file as well as the dist name. Then everything breaks.

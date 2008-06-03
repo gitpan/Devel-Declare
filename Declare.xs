@@ -178,7 +178,7 @@ STATIC OP *dd_ck_rv2cv(pTHX_ OP *o) {
           while (*s && *s != '{') ++s;
           if (*s) {
               int tlen = s - traitstart;
-              Newx(found_traits, tlen+1, char);
+              New(0, found_traits, tlen+1, char);
               Copy(traitstart, found_traits, tlen, char);
               found_traits[tlen] = 0;
 #ifdef DD_DEBUG
@@ -296,8 +296,8 @@ OP* dd_pp_entereval(pTHX) {
 
 STATIC OP *dd_ck_entereval(pTHX_ OP *o) {
   o = dd_old_ck_entereval(aTHX_ o); /* let the original do its job */
-  o->op_flags |= OPf_SPECIAL;
-  o->op_ppaddr = dd_pp_entereval;
+  if (o->op_ppaddr == PL_ppaddr[OP_ENTEREVAL])
+    o->op_ppaddr = dd_pp_entereval;
   return o;
 }
 
