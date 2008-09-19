@@ -13,8 +13,12 @@ stolen_chunk_of_toke.c
 t/build_sub_installer.t
 t/combi.t
 t/eval.t
+t/method-no-semi.t
+t/method.t
+t/new.t
 t/pack.t
 t/padstuff.t
 t/proto.t
 t/simple.t
+t/statement.t
 t/sugar.t

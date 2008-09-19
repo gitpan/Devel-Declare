@@ -3,9 +3,10 @@ abstract: ''
 author: 
   - Matt S Trout - <mst@shadowcat.co.uk>
 build_requires: 
+  Scope::Guard: 0
   Test::More: 0
 distribution_type: module
-generated_by: Module::Install version 0.680
+generated_by: Module::Install version 0.68
 license: perl
 meta-spec: 
   url: http://module-build.sourceforge.net/META-spec-v1.3.html
@@ -18,4 +19,4 @@ no_index:
 requires: 
   Scalar::Util: 0
   perl: 5.8.1
-version: 0.001009
+version: 0.002000
