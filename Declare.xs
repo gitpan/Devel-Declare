@@ -1,5 +1,3 @@
-#define PERL_CORE
-#define PERL_NO_GET_CONTEXT
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
@@ -12,17 +10,9 @@
 # define Newx(v,n,t) New(0,v,n,t)
 #endif /* !Newx */
 
-#if 1
-#define DD_HAS_TRAITS
-#endif
-
 #if 0
 #define DD_DEBUG
 #endif
-
-#define DD_HANDLE_NAME 1
-#define DD_HANDLE_PROTO 2
-#define DD_HANDLE_PACKAGE 8
 
 #ifdef DD_DEBUG
 #define DD_DEBUG_S printf("Buffer: %s\n", s);
@@ -36,6 +26,22 @@
 /* flag to trigger removal of temporary declaree sub */
 
 static int in_declare = 0;
+
+/* in 5.10, PL_parser will be NULL if we aren't parsing, and PL_lex_stuff
+   is a lookup into it - so if anything else we can use to tell, so we
+   need to be a bit more careful if PL_parser exists */
+
+#define DD_AM_LEXING_CHECK (PL_lex_state == LEX_NORMAL || PL_lex_state == LEX_INTERPNORMAL)
+
+#ifdef PL_parser
+#define DD_HAVE_PARSER PL_parser
+#define DD_HAVE_LEX_STUFF (PL_parser && PL_lex_stuff)
+#define DD_AM_LEXING (PL_parser && DD_AM_LEXING_CHECK)
+#else
+#define DD_HAVE_PARSER 1
+#define DD_HAVE_LEX_STUFF PL_lex_stuff
+#define DD_AM_LEXING DD_AM_LEXING_CHECK
+#endif
 
 /* thing that decides whether we're dealing with a declarator */
 
@@ -112,10 +118,11 @@ void dd_set_linestr(pTHX_ char* new_value) {
   int new_len = strlen(new_value);
   char* old_linestr = SvPVX(PL_linestr);
 
-  SvGROW(PL_linestr, strlen(new_value));
+  if (SvLEN(PL_linestr) < new_len) {
+    croak("forced to realloc PL_linestr for line %s, bailing out before we crash harder", SvPVX(PL_linestr));
+  }
 
-  if (SvPVX(PL_linestr) != old_linestr)
-    Perl_croak(aTHX_ "forced to realloc PL_linestr for line %s, bailing out before we crash harder", SvPVX(PL_linestr));
+  SvGROW(PL_linestr, new_len);
 
   memcpy(SvPVX(PL_linestr), new_value, new_len+1);
 
@@ -125,11 +132,12 @@ void dd_set_linestr(pTHX_ char* new_value) {
 }
 
 char* dd_get_lex_stuff(pTHX) {
-  return (PL_lex_stuff ? SvPVX(PL_lex_stuff) : "");
+  return (DD_HAVE_LEX_STUFF ? SvPVX(PL_lex_stuff) : "");
 }
 
 char* dd_clear_lex_stuff(pTHX) {
-  PL_lex_stuff = Nullsv;
+  if (DD_HAVE_PARSER)
+    PL_lex_stuff = (SV*)NULL;
 }
 
 char* dd_get_curstash_name(pTHX) {
@@ -217,7 +225,7 @@ STATIC OP *dd_ck_rv2cv(pTHX_ OP *o) {
   if (kid->op_type != OP_GV) /* not a GV so ignore */
     return o;
 
-  if (PL_lex_state != LEX_NORMAL && PL_lex_state != LEX_INTERPNORMAL)
+  if (!DD_AM_LEXING)
     return o; /* not lexing? */
 
 #ifdef DD_DEBUG
@@ -295,7 +303,7 @@ STATIC OP *dd_ck_const(pTHX_ OP *o) {
   /* if this is set, we just grabbed a delimited string or something,
      not a bareword, so NO TOUCHY */
 
-  if (PL_lex_stuff)
+  if (DD_HAVE_LEX_STUFF)
     return o;
 
   /* don't try and look this up if it's not a string const */
