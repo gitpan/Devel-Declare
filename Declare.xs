@@ -10,15 +10,7 @@
 # define Newx(v,n,t) New(0,v,n,t)
 #endif /* !Newx */
 
-#if 0
-#define DD_DEBUG
-#endif
-
-#ifdef DD_DEBUG
-#define DD_DEBUG_S printf("Buffer: %s\n", s);
-#else
-#define DD_DEBUG_S
-#endif
+static int dd_debug = 0;
 
 #define LEX_NORMAL    10
 #define LEX_INTERPNORMAL   9
@@ -111,12 +103,14 @@ void dd_linestr_callback (pTHX_ char* type, char* name) {
 }
 
 char* dd_get_linestr(pTHX) {
+  if (!DD_HAVE_PARSER) {
+    return NULL;
+  }
   return SvPVX(PL_linestr);
 }
 
 void dd_set_linestr(pTHX_ char* new_value) {
   int new_len = strlen(new_value);
-  char* old_linestr = SvPVX(PL_linestr);
 
   if (SvLEN(PL_linestr) < new_len) {
     croak("forced to realloc PL_linestr for line %s, bailing out before we crash harder", SvPVX(PL_linestr));
@@ -135,7 +129,7 @@ char* dd_get_lex_stuff(pTHX) {
   return (DD_HAVE_LEX_STUFF ? SvPVX(PL_lex_stuff) : "");
 }
 
-char* dd_clear_lex_stuff(pTHX) {
+void dd_clear_lex_stuff(pTHX) {
   if (DD_HAVE_PARSER)
     PL_lex_stuff = (SV*)NULL;
 }
@@ -145,7 +139,11 @@ char* dd_get_curstash_name(pTHX) {
 }
 
 int dd_get_linestr_offset(pTHX) {
-  char* linestr = SvPVX(PL_linestr);
+  char* linestr;
+  if (!DD_HAVE_PARSER) {
+    return -1;
+  }
+  linestr = SvPVX(PL_linestr);
   return PL_bufptr - linestr;
 }
 
@@ -196,27 +194,37 @@ STATIC OP *(*dd_old_ck_rv2cv)(pTHX_ OP *op);
 STATIC OP *dd_ck_rv2cv(pTHX_ OP *o) {
   OP* kid;
   int dd_flags;
-  char* cb_args[6];
 
   o = dd_old_ck_rv2cv(aTHX_ o); /* let the original do its job */
 
   if (in_declare) {
-    cb_args[0] = NULL;
-#ifdef DD_DEBUG
-    printf("Deconstructing declare\n");
-    printf("PL_bufptr: %s\n", PL_bufptr);
-    printf("bufend at: %i\n", PL_bufend - PL_bufptr);
-    printf("linestr: %s\n", SvPVX(PL_linestr));
-    printf("linestr len: %i\n", PL_bufend - SvPVX(PL_linestr));
-#endif
-    call_argv("Devel::Declare::done_declare", G_VOID|G_DISCARD, cb_args);
-#ifdef DD_DEBUG
-    printf("PL_bufptr: %s\n", PL_bufptr);
-    printf("bufend at: %i\n", PL_bufend - PL_bufptr);
-    printf("linestr: %s\n", SvPVX(PL_linestr));
-    printf("linestr len: %i\n", PL_bufend - SvPVX(PL_linestr));
-    printf("actual len: %i\n", strlen(PL_bufptr));
-#endif
+    if (dd_debug) {
+      printf("Deconstructing declare\n");
+      printf("PL_bufptr: %s\n", PL_bufptr);
+      printf("bufend at: %i\n", PL_bufend - PL_bufptr);
+      printf("linestr: %s\n", SvPVX(PL_linestr));
+      printf("linestr len: %i\n", PL_bufend - SvPVX(PL_linestr));
+    }
+
+    dSP;
+  
+    ENTER;
+    SAVETMPS;
+  
+    PUSHMARK(SP);
+  
+    call_pv("Devel::Declare::done_declare", G_VOID|G_DISCARD);
+
+    FREETMPS;
+    LEAVE;
+
+    if (dd_debug) {
+      printf("PL_bufptr: %s\n", PL_bufptr);
+      printf("bufend at: %i\n", PL_bufend - PL_bufptr);
+      printf("linestr: %s\n", SvPVX(PL_linestr));
+      printf("linestr len: %i\n", PL_bufend - SvPVX(PL_linestr));
+      printf("actual len: %i\n", strlen(PL_bufptr));
+    }
     return o;
   }
 
@@ -228,22 +236,19 @@ STATIC OP *dd_ck_rv2cv(pTHX_ OP *o) {
   if (!DD_AM_LEXING)
     return o; /* not lexing? */
 
-#ifdef DD_DEBUG
-  printf("Checking GV %s -> %s\n", HvNAME(GvSTASH(kGVOP_gv)), GvNAME(kGVOP_gv));
-#endif
+  if (dd_debug) {
+    printf("Checking GV %s -> %s\n", HvNAME(GvSTASH(kGVOP_gv)), GvNAME(kGVOP_gv));
+  }
 
   dd_flags = dd_is_declarator(aTHX_ GvNAME(kGVOP_gv));
 
   if (dd_flags == -1)
     return o;
 
-#ifdef DD_DEBUG
-  printf("dd_flags are: %i\n", dd_flags);
-#endif
-
-#ifdef DD_DEBUG
-  printf("PL_tokenbuf: %s\n", PL_tokenbuf);
-#endif
+  if (dd_debug) {
+    printf("dd_flags are: %i\n", dd_flags);
+    printf("PL_tokenbuf: %s\n", PL_tokenbuf);
+  }
 
   dd_linestr_callback(aTHX_ "rv2cv", GvNAME(kGVOP_gv));
 
@@ -258,9 +263,9 @@ OP* dd_pp_entereval(pTHX) {
   STRLEN len;
   const char* s;
   if (SvPOK(sv)) {
-#ifdef DD_DEBUG
-    printf("mangling eval sv\n");
-#endif
+    if (dd_debug) {
+      printf("mangling eval sv\n");
+    }
     if (SvREADONLY(sv))
       sv = sv_2mortal(newSVsv(sv));
     s = SvPVX(sv);
@@ -295,7 +300,6 @@ STATIC OP *(*dd_old_ck_const)(pTHX_ OP*op);
 
 STATIC OP *dd_ck_const(pTHX_ OP *o) {
   int dd_flags;
-  char* s;
   char* name;
 
   o = dd_old_ck_const(aTHX_ o); /* let the original do its job */
@@ -418,3 +422,8 @@ void
 set_in_declare(int value)
   CODE:
     in_declare = value;
+
+BOOT:
+  if (getenv ("DD_DEBUG")) {
+    dd_debug = 1;
+  }
