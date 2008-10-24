@@ -14,6 +14,7 @@ stolen_chunk_of_toke.c
 t/build_sub_installer.t
 t/combi.t
 t/eval.t
+t/load_module.t
 t/method-no-semi.t
 t/method.t
 t/new.t

@@ -1,6 +1,7 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#include "hook_op_check.h"
 #undef printf
 #include "stolen_chunk_of_toke.c"
 #include <stdio.h>
@@ -25,7 +26,7 @@ static int in_declare = 0;
 
 #define DD_AM_LEXING_CHECK (PL_lex_state == LEX_NORMAL || PL_lex_state == LEX_INTERPNORMAL)
 
-#ifdef PL_parser
+#if defined(PL_parser) || defined(PERL_5_9_PLUS)
 #define DD_HAVE_PARSER PL_parser
 #define DD_HAVE_LEX_STUFF (PL_parser && PL_lex_stuff)
 #define DD_AM_LEXING (PL_parser && DD_AM_LEXING_CHECK)
@@ -50,6 +51,9 @@ int dd_is_declarator(pTHX_ char* name) {
     return -1;
 
   /* $declarators{$current_package_name} */
+
+  if (!HvNAME(PL_curstash))
+	  return -1;
 
   is_declarator_pack_ref = hv_fetch(is_declarator, HvNAME(PL_curstash),
                              strlen(HvNAME(PL_curstash)), FALSE);
@@ -189,13 +193,10 @@ int dd_toke_skipspace(pTHX_ int offset) {
 
 /* replacement PL_check rv2cv entry */
 
-STATIC OP *(*dd_old_ck_rv2cv)(pTHX_ OP *op);
-
-STATIC OP *dd_ck_rv2cv(pTHX_ OP *o) {
+STATIC OP *dd_ck_rv2cv(pTHX_ OP *o, void *user_data) {
+  dSP;
   OP* kid;
   int dd_flags;
-
-  o = dd_old_ck_rv2cv(aTHX_ o); /* let the original do its job */
 
   if (in_declare) {
     if (dd_debug) {
@@ -206,13 +207,11 @@ STATIC OP *dd_ck_rv2cv(pTHX_ OP *o) {
       printf("linestr len: %i\n", PL_bufend - SvPVX(PL_linestr));
     }
 
-    dSP;
-  
     ENTER;
     SAVETMPS;
-  
+
     PUSHMARK(SP);
-  
+
     call_pv("Devel::Declare::done_declare", G_VOID|G_DISCARD);
 
     FREETMPS;
@@ -255,8 +254,6 @@ STATIC OP *dd_ck_rv2cv(pTHX_ OP *o) {
   return o;
 }
 
-STATIC OP *(*dd_old_ck_entereval)(pTHX_ OP *op);
-
 OP* dd_pp_entereval(pTHX) {
   dSP;
   dPOPss;
@@ -281,8 +278,7 @@ OP* dd_pp_entereval(pTHX) {
   return PL_ppaddr[OP_ENTEREVAL](aTHX);
 }
 
-STATIC OP *dd_ck_entereval(pTHX_ OP *o) {
-  o = dd_old_ck_entereval(aTHX_ o); /* let the original do its job */
+STATIC OP *dd_ck_entereval(pTHX_ OP *o, void *user_data) {
   if (o->op_ppaddr == PL_ppaddr[OP_ENTEREVAL])
     o->op_ppaddr = dd_pp_entereval;
   return o;
@@ -296,13 +292,9 @@ static I32 dd_filter_realloc(pTHX_ int idx, SV *sv, int maxlen)
   return count;
 }
 
-STATIC OP *(*dd_old_ck_const)(pTHX_ OP*op);
-
-STATIC OP *dd_ck_const(pTHX_ OP *o) {
+STATIC OP *dd_ck_const(pTHX_ OP *o, void *user_data) {
   int dd_flags;
   char* name;
-
-  o = dd_old_ck_const(aTHX_ o); /* let the original do its job */
 
   /* if this is set, we just grabbed a delimited string or something,
      not a bareword, so NO TOUCHY */
@@ -336,12 +328,9 @@ void
 setup()
   CODE:
   if (!initialized++) {
-    dd_old_ck_rv2cv = PL_check[OP_RV2CV];
-    PL_check[OP_RV2CV] = dd_ck_rv2cv;
-    dd_old_ck_entereval = PL_check[OP_ENTEREVAL];
-    PL_check[OP_ENTEREVAL] = dd_ck_entereval;
-    dd_old_ck_const = PL_check[OP_CONST];
-    PL_check[OP_CONST] = dd_ck_const;
+    hook_op_check(OP_RV2CV, dd_ck_rv2cv, NULL);
+    hook_op_check(OP_ENTEREVAL, dd_ck_entereval, NULL);
+    hook_op_check(OP_CONST, dd_ck_const, NULL);
   }
   filter_add(dd_filter_realloc, NULL);
 

@@ -1,11 +1,14 @@
 ---
-abstract: ''
+abstract: 'Adding keywords to perl, in perl'
 author:
   - 'Matt S Trout - <mst@shadowcat.co.uk>'
 build_requires:
-  Scope::Guard: 0
+  B::Hooks::EndOfScope: 0
+  B::Hooks::OP::Check: 0.10
   Test::More: 0
 configure_requires:
+  B::Hooks::OP::Check: 0.10
+  ExtUtils::Depends: 0
   ExtUtils::MakeMaker: 6.46
 distribution_type: module
 generated_by: 'Module::Install version 0.77'
@@ -19,8 +22,9 @@ no_index:
     - inc
     - t
 requires:
+  B::Hooks::OP::Check: 0.10
   Scalar::Util: 0
   perl: 5.8.1
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.002002
+version: 0.002999_01

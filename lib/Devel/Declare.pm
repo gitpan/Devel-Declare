@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.008001;
 
-our $VERSION = '0.002002';
+our $VERSION = '0.002999_01';
 
 use constant DECLARE_NAME => 1;
 use constant DECLARE_PROTO => 2;
@@ -14,6 +14,7 @@ use constant DECLARE_PACKAGE => 8+1; # name implicit
 use vars qw(%declarators %declarator_handlers @ISA);
 use base qw(DynaLoader);
 use Scalar::Util 'set_prototype';
+use B::Hooks::OP::Check;
 
 bootstrap Devel::Declare;
 
@@ -96,7 +97,6 @@ sub shadow_sub {
   no strict 'refs';
   my ($pack, $pname) = ($name =~ m/(.+)::([^:]+)/);
   push(@$temp_save, $pack->can($pname));
-  delete ${"${pack}::"}{$pname};
   no warnings 'redefine';
   no warnings 'prototype';
   *{$name} = $cr;
@@ -285,18 +285,18 @@ sub linestr_callback {
 
 =head1 NAME
 
-Devel::Declare - 
+Devel::Declare - Adding keywords to perl, in perl
 
 =head1 SYNOPSIS
 
   use Devel::Declare ();
-  use Scope::Guard;
   
   {
     package MethodHandlers;
   
     use strict;
     use warnings;
+    use B::Hooks::EndOfScope;
   
     our ($Declarator, $Offset);
   
@@ -391,13 +391,12 @@ Devel::Declare -
     }
   
     sub inject_scope {
-      $^H |= 0x120000;
-      $^H{DD_METHODHANDLERS} = Scope::Guard->new(sub {
+      on_scope_end {
         my $linestr = Devel::Declare::get_linestr;
         my $offset = Devel::Declare::get_linestr_offset;
         substr($linestr, $offset, 0) = ';';
         Devel::Declare::set_linestr($linestr);
-      });
+      };
     }
   }
   
