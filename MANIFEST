@@ -6,6 +6,8 @@ inc/Module/Install/Makefile.pm
 inc/Module/Install/MakeMaker.pm
 inc/Module/Install/Metadata.pm
 lib/Devel/Declare.pm
+lib/Devel/Declare/Context/Simple.pm
+lib/Devel/Declare/MethodInstaller/Simple.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
@@ -13,8 +15,10 @@ README
 stolen_chunk_of_toke.c
 t/build_sub_installer.t
 t/combi.t
+t/ctx-simple.t
 t/eval.t
 t/load_module.t
+t/methinstaller-simple.t
 t/method-no-semi.t
 t/method.t
 t/new.t
