@@ -19,6 +19,7 @@ t/ctx-simple.t
 t/eval.t
 t/load_module.t
 t/methinstaller-simple.t
+t/method-installer-runtime.t
 t/method-no-semi.t
 t/method.t
 t/new.t
