@@ -114,7 +114,7 @@ char* dd_get_linestr(pTHX) {
 }
 
 void dd_set_linestr(pTHX_ char* new_value) {
-  int new_len = strlen(new_value);
+  unsigned int new_len = strlen(new_value);
 
   if (SvLEN(PL_linestr) < new_len) {
     croak("forced to realloc PL_linestr for line %s, bailing out before we crash harder", SvPVX(PL_linestr));
@@ -179,6 +179,13 @@ int dd_toke_scan_word(pTHX_ int offset, int handle_package) {
   return s - base_s;
 }
 
+int dd_toke_scan_ident(pTHX_ int offset) {
+    char tmpbuf[sizeof PL_tokenbuf];
+    char* base_s = SvPVX(PL_linestr) + offset;
+    char* s = scan_ident(base_s, PL_bufend, tmpbuf, sizeof tmpbuf, 0);
+    return s - base_s;
+}
+
 int dd_toke_scan_str(pTHX_ int offset) {
   char* base_s = SvPVX(PL_linestr) + offset;
   char* s = scan_str(base_s, FALSE, FALSE);
@@ -197,6 +204,8 @@ STATIC OP *dd_ck_rv2cv(pTHX_ OP *o, void *user_data) {
   dSP;
   OP* kid;
   int dd_flags;
+
+  PERL_UNUSED_VAR(user_data);
 
   if (in_declare) {
     if (dd_debug) {
@@ -256,9 +265,16 @@ STATIC OP *dd_ck_rv2cv(pTHX_ OP *o, void *user_data) {
 
 OP* dd_pp_entereval(pTHX) {
   dSP;
-  dPOPss;
   STRLEN len;
   const char* s;
+  SV *sv;
+#ifdef PERL_5_9_PLUS
+  SV *saved_hh;
+  if (PL_op->op_private & OPpEVAL_HAS_HH) {
+    saved_hh = POPs;
+  }
+#endif
+  sv = POPs;
   if (SvPOK(sv)) {
     if (dd_debug) {
       printf("mangling eval sv\n");
@@ -275,10 +291,17 @@ OP* dd_pp_entereval(pTHX) {
     SvGROW(sv, 8192);
   }
   PUSHs(sv);
+#ifdef PERL_5_9_PLUS
+  if (PL_op->op_private & OPpEVAL_HAS_HH) {
+    PUSHs(saved_hh);
+  }
+#endif
   return PL_ppaddr[OP_ENTEREVAL](aTHX);
 }
 
 STATIC OP *dd_ck_entereval(pTHX_ OP *o, void *user_data) {
+  PERL_UNUSED_VAR(user_data);
+
   if (o->op_ppaddr == PL_ppaddr[OP_ENTEREVAL])
     o->op_ppaddr = dd_pp_entereval;
   return o;
@@ -295,6 +318,8 @@ static I32 dd_filter_realloc(pTHX_ int idx, SV *sv, int maxlen)
 STATIC OP *dd_ck_const(pTHX_ OP *o, void *user_data) {
   int dd_flags;
   char* name;
+
+  PERL_UNUSED_VAR(user_data);
 
   /* if this is set, we just grabbed a delimited string or something,
      not a bareword, so NO TOUCHY */
@@ -390,6 +415,13 @@ int
 toke_scan_str(int offset);
   CODE:
     RETVAL = dd_toke_scan_str(aTHX_ offset);
+  OUTPUT:
+    RETVAL
+
+int
+toke_scan_ident(int offset)
+  CODE:
+    RETVAL = dd_toke_scan_ident(aTHX_ offset);
   OUTPUT:
     RETVAL
 
