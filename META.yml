@@ -1,15 +1,16 @@
 ---
 abstract: 'Adding keywords to perl, in perl'
 author:
-  - 'Matt S Trout - <mst@shadowcat.co.uk>'
+  - 'Matt S Trout - <mst@shadowcat.co.uk> - original author'
 build_requires:
   B::Hooks::OP::Check: 0.10
+  ExtUtils::MakeMaker: 6.42
 configure_requires:
   B::Hooks::OP::Check: 0.10
   ExtUtils::Depends: 0
-  ExtUtils::MakeMaker: 6.50
+  ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.81'
+generated_by: 'Module::Install version 0.82'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -27,4 +28,4 @@ requires:
   perl: 5.8.1
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.003005
+version: 0.004000

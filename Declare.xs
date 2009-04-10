@@ -53,7 +53,7 @@ int dd_is_declarator(pTHX_ char* name) {
   /* $declarators{$current_package_name} */
 
   if (!HvNAME(PL_curstash))
-	  return -1;
+    return -1;
 
   is_declarator_pack_ref = hv_fetch(is_declarator, HvNAME(PL_curstash),
                              strlen(HvNAME(PL_curstash)), FALSE);
@@ -73,7 +73,7 @@ int dd_is_declarator(pTHX_ char* name) {
   /* requires SvIOK as well as TRUE since flags not being an int is useless */
 
   if (!is_declarator_flag_ref
-        || !SvIOK(*is_declarator_flag_ref) 
+        || !SvIOK(*is_declarator_flag_ref)
         || !SvTRUE(*is_declarator_flag_ref))
     return -1;
 
@@ -338,9 +338,22 @@ STATIC OP *dd_ck_const(pTHX_ OP *o, void *user_data) {
   if (dd_flags == -1)
     return o;
 
+  switch (PL_lex_inwhat) {
+    case OP_QR:
+    case OP_MATCH:
+    case OP_SUBST:
+    case OP_TRANS:
+    case OP_BACKTICK:
+    case OP_STRINGIFY:
+      return o;
+      break;
+    default:
+      break;
+  }
+
   dd_linestr_callback(aTHX_ "const", name);
 
-  return o;  
+  return o;
 }
 
 static int initialized = 0;
