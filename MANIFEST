@@ -24,6 +24,7 @@ t/methinstaller-simple.t
 t/method-installer-runtime.t
 t/method-no-semi.t
 t/method.t
+t/multiline-proto.t
 t/new.t
 t/pack.t
 t/padstuff.t
