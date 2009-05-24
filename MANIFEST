@@ -19,6 +19,7 @@ t/combi.t
 t/ctx-simple.t
 t/eval.t
 t/fail.t
+t/lines.t
 t/load_module.t
 t/methinstaller-simple.t
 t/method-installer-runtime.t
