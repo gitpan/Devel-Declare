@@ -17,6 +17,8 @@ t/00load.t
 t/build_sub_installer.t
 t/combi.t
 t/ctx-simple.t
+t/debug.pl
+t/debug.t
 t/eval.t
 t/fail.t
 t/lines.t
