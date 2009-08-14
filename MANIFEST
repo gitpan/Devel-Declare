@@ -29,6 +29,7 @@ t/method-no-semi.t
 t/method.t
 t/multiline-proto.t
 t/new.t
+t/no-bareword.t
 t/pack.t
 t/padstuff.t
 t/proto.t

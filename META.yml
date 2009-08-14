@@ -5,6 +5,7 @@ author:
 build_requires:
   B::Hooks::OP::Check: 0.18
   ExtUtils::MakeMaker: 6.42
+  Test::More: 0.88
 configure_requires:
   B::Hooks::OP::Check: 0.18
   ExtUtils::Depends: 0.302
@@ -29,4 +30,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/rafl/devel-declare.git
-version: 0.005010
+version: 0.005011
