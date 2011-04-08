@@ -30,4 +30,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/rafl/devel-declare.git
-version: 0.006001
+version: 0.006002
