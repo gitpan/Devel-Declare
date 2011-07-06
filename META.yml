@@ -6,12 +6,13 @@ build_requires:
   B::Hooks::OP::Check: 0.18
   ExtUtils::MakeMaker: 6.42
   Test::More: 0.88
+  Test::Warn: 0
 configure_requires:
   B::Hooks::OP::Check: 0.18
   ExtUtils::Depends: 0.302
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 1.00'
+generated_by: 'Module::Install version 1.01'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -30,4 +31,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/rafl/devel-declare.git
-version: 0.006004
+version: 0.006005
