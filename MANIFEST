@@ -14,6 +14,7 @@ META.yml
 README
 stolen_chunk_of_toke.c
 t/00load.t
+t/block_size.t
 t/build_sub_installer.t
 t/combi.t
 t/ctx-simple-like-mxms.t
