@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.008001;
 
-our $VERSION = '0.006006';
+our $VERSION = '0.006007';
 
 use constant DECLARE_NAME => 1;
 use constant DECLARE_PROTO => 2;
@@ -14,11 +14,13 @@ use constant DECLARE_PACKAGE => 8+1; # name implicit
 use vars qw(%declarators %declarator_handlers @ISA);
 use base qw(DynaLoader);
 use Scalar::Util 'set_prototype';
-use B::Hooks::OP::Check;
+use B::Hooks::OP::Check 0.19;
 
 bootstrap Devel::Declare;
 
 @ISA = ();
+
+initialize();
 
 sub import {
   my ($class, %args) = @_;
@@ -513,8 +515,25 @@ things like C<q(this is a quote)>).
 
 Also it Does The Right Thing with nested delimiters (like C<q(this (is (a) quote))>).
 
-It returns the length of the expression matched.  Use C<get_lex_stuff> to
-get the actual matched text.
+It returns the effective length of the expression matched.  Really, what
+it returns is the difference in position between where the string started,
+within the buffer, and where it finished.  If the string extended across
+multiple lines then the contents of the buffer may have been completely
+replaced by the new lines, so this position difference is not the same
+thing as the actual length of the expression matched.  However, because
+moving backward in the buffer causes problems, the function arranges
+for the effective length to always be positive, padding the start of
+the buffer if necessary.
+
+Use C<get_lex_stuff> to get the actual matched text, the content of
+the string.  Because of the behaviour around multiline strings, you
+can't reliably get this from the buffer.  In fact, after the function
+returns, you can't rely on any content of the buffer preceding the end
+of the string.
+
+If the string being scanned is not well formed (has no closing delimiter),
+C<toke_scan_str> returns C<undef>.  In this case you cannot rely on the
+contents of the buffer.
 
 =head4 C<get_lex_stuff>
 

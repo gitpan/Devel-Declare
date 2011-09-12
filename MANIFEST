@@ -25,6 +25,7 @@ t/devel_callparser.t
 t/early0.t
 t/early1.t
 t/early1_x.pm
+t/early2.t
 t/eval.t
 t/fail.t
 t/lines.t
@@ -41,6 +42,8 @@ t/pack.t
 t/padstuff.t
 t/proto.t
 t/quote.t
+t/scanstr.t
+t/scanstr_fail.t
 t/simple.t
 t/statement.t
 t/sugar.t

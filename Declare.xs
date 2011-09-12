@@ -218,16 +218,19 @@ int dd_toke_scan_ident(pTHX_ int offset) {
 }
 
 int dd_toke_scan_str(pTHX_ int offset) {
-  STRLEN remaining = sv_len(PL_linestr) - offset;
-  SV* line_copy = newSVsv(PL_linestr);
+  char* old_pvx = SvPVX(PL_linestr);
+  SV* line_copy = sv_2mortal(newSVsv(PL_linestr));
   char* base_s = SvPVX(PL_linestr) + offset;
   char* s = scan_str(base_s, FALSE, FALSE);
-  if (s != base_s && sv_len(PL_lex_stuff) > remaining) {
-    int ret = (s - SvPVX(PL_linestr)) + remaining;
+  if(SvPVX(PL_linestr) != old_pvx)
+    croak("PL_linestr reallocated during scan_str, "
+      "Devel::Declare can't continue");
+  if (!s)
+    return 0;
+  if (s <= base_s) {
+    s += SvCUR(line_copy);
     sv_catsv(line_copy, PL_linestr);
     dd_set_linestr(aTHX_ SvPV_nolen(line_copy));
-    SvREFCNT_dec(line_copy);
-    return ret;
   }
   return s - base_s;
 }
@@ -482,16 +485,10 @@ STATIC OP *dd_ck_const(pTHX_ OP *o, void *user_data) {
 
 #endif /* !DD_CONST_VIA_RV2CV */
 
-static int initialized = 0;
-
-MODULE = Devel::Declare  PACKAGE = Devel::Declare
-
-PROTOTYPES: DISABLE
-
-void
-setup()
-  CODE:
-  if (!initialized++) {
+STATIC void dd_initialize(pTHX) {
+  static int initialized = 0;
+  if (!initialized) {
+    initialized = 1;
 #if DD_GROW_VIA_BLOCKHOOK
     static BHK bhk;
 #if PERL_VERSION_GE(5,13,6)
@@ -508,7 +505,22 @@ setup()
     hook_op_check(OP_CONST, dd_ck_const, NULL);
 #endif /* !DD_CONST_VIA_RV2CV */
   }
-  filter_add(dd_filter_realloc, NULL);
+}
+
+MODULE = Devel::Declare  PACKAGE = Devel::Declare
+
+PROTOTYPES: DISABLE
+
+void
+initialize()
+  CODE:
+    dd_initialize(aTHX);
+
+void
+setup()
+  CODE:
+    dd_initialize(aTHX);
+    filter_add(dd_filter_realloc, NULL);
 
 char*
 get_linestr()
@@ -562,10 +574,13 @@ toke_move_past_token(int offset);
   OUTPUT:
     RETVAL
 
-int
+SV*
 toke_scan_str(int offset);
+  PREINIT:
+    int len;
   CODE:
-    RETVAL = dd_toke_scan_str(aTHX_ offset);
+    len = dd_toke_scan_str(aTHX_ offset);
+    RETVAL = len ? newSViv(len) : &PL_sv_undef;
   OUTPUT:
     RETVAL
 

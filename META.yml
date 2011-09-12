@@ -3,12 +3,12 @@ abstract: 'Adding keywords to perl, in perl'
 author:
   - 'Matt S Trout - <mst@shadowcat.co.uk> - original author'
 build_requires:
-  B::Hooks::OP::Check: 0.18
+  B::Hooks::OP::Check: 0.19
   ExtUtils::MakeMaker: 6.42
   Test::More: 0.88
   Test::Warn: 0
 configure_requires:
-  B::Hooks::OP::Check: 0.18
+  B::Hooks::OP::Check: 0.19
   ExtUtils::Depends: 0.302
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
@@ -24,11 +24,11 @@ no_index:
     - t
 requires:
   B::Hooks::EndOfScope: 0.05
-  B::Hooks::OP::Check: 0.18
+  B::Hooks::OP::Check: 0.19
   Scalar::Util: 1.11
   Sub::Name: 0
   perl: 5.8.1
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/rafl/devel-declare.git
-version: 0.006006
+version: 0.006007
