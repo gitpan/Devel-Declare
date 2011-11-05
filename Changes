@@ -1,5 +1,9 @@
 Changes for Devel-Declare
 
+0.006008 - 05 Nov 2011
+  - Adjust toke_scan_str logic to always leave the prefix part of
+    linestr unchanged.
+
 0.006007 - 12 Sep 2011
   - Depend on B::Hooks::OP::Check version 0.19, which fixes a serious bug in
     how it interacts with other modules that hook ops.
