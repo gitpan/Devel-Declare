@@ -1,5 +1,15 @@
 Changes for Devel-Declare
 
+0.006009 - 01 Feb 2012
+  - Be adaptive about whether to delete the line reallocation filter,
+    so as to play as nicely as possible with other kinds of source filter.
+  - Document that injecting newlines doesn't work.
+  - Fix a C declaration after statement, which broke compatibility with
+    older compilers (Jan Dubois).
+  - Partially work around unexported core symbols affecting Perl 5.8 on
+    Windows (David Bouyssie).
+  - Jump through some hoops to avoid compiler warnings.
+
 0.006008 - 05 Nov 2011
   - Adjust toke_scan_str logic to always leave the prefix part of
     linestr unchanged.

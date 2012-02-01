@@ -28,6 +28,8 @@ t/early1_x.pm
 t/early2.t
 t/eval.t
 t/fail.t
+t/filter0.t
+t/filter1.t
 t/lines.t
 t/load_module.t
 t/methinstaller-simple.t

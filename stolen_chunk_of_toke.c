@@ -108,6 +108,20 @@ STATIC char*    S_scan_word(pTHX_ char *s, char *dest, STRLEN destlen, int allow
 #define PERL_5_9_PLUS
 #endif
 
+#ifndef PERL_5_9_PLUS
+/* These two are not exported from the core on Windows.  With 5.9+
+   it's not an issue, because they're part of the PL_parser structure,
+   which is exported.  On multiplicity/thread builds we can work
+   around the lack of export by this formulation, where we provide
+   a substitute implementation of the unexported accessor functions.
+   On single-interpreter builds we can't, because access is directly
+   via symbols that are not exported.  */
+# define Perl_Ilinestart_ptr my_Ilinestart_ptr
+char **my_Ilinestart_ptr(pTHX) { return &(aTHX->Ilinestart); }
+# define Perl_Isublex_info_ptr my_Isublex_info_ptr
+static SUBLEXINFO *my_Isublex_info_ptr(pTHX) { return &(aTHX->Isublex_info); }
+#endif
+
 #ifdef PERL_5_9_PLUS
 /* 5.9+ moves a bunch of things to a PL_parser struct so we need to
    declare the backcompat macros for things to still work (mst) */
@@ -284,7 +298,7 @@ S_skipspace(pTHX_ register char *s, int incline)
 	SSize_t oldprevlen, oldoldprevlen;
 	SSize_t oldloplen = 0, oldunilen = 0;
 	while (s < PL_bufend && isSPACE(*s)) {
-	    if (*s++ == '\n' && ((incline == 2) || PL_in_eval && !PL_rsfp && !incline))
+	    if (*s++ == '\n' && ((incline == 2) || (PL_in_eval && !PL_rsfp && !incline)))
 		incline(s);
 	}
 
@@ -385,13 +399,15 @@ S_skipspace(pTHX_ register char *s, int incline)
 	 * so store the line into the debugger's array of lines
 	 */
 	if (PERLDB_LINE && PL_curstash != PL_debstash) {
-	    SV * const sv = NEWSV(85,0);
-
-	    sv_upgrade(sv, SVt_PVMG);
-	    sv_setpvn(sv,PL_bufptr,PL_bufend-PL_bufptr);
-            (void)SvIOK_on(sv);
-            SvIV_set(sv, 0);
-	    av_store(CopFILEAV(PL_curcop),(I32)CopLINE(PL_curcop),sv);
+	    AV *fileav = CopFILEAV(PL_curcop);
+	    if (fileav) {
+		SV * const sv = NEWSV(85,0);
+		sv_upgrade(sv, SVt_PVMG);
+		sv_setpvn(sv,PL_bufptr,PL_bufend-PL_bufptr);
+		(void)SvIOK_on(sv);
+		SvIV_set(sv, 0);
+		av_store(fileav,(I32)CopLINE(PL_curcop),sv);
+	    }
 	}
     }
 }
@@ -815,13 +831,15 @@ S_scan_str(pTHX_ char *start, int keep_quoted, int keep_delims)
 
 	/* update debugger info */
 	if (PERLDB_LINE && PL_curstash != PL_debstash) {
-	    SV *sv = NEWSV(88,0);
-
-	    sv_upgrade(sv, SVt_PVMG);
-	    sv_setsv(sv,PL_linestr);
-            (void)SvIOK_on(sv);
-            SvIV_set(sv, 0);
-	    av_store(CopFILEAV(PL_curcop), (I32)CopLINE(PL_curcop), sv);
+	    AV *fileav = CopFILEAV(PL_curcop);
+	    if (fileav) {
+		SV *sv = NEWSV(88,0);
+		sv_upgrade(sv, SVt_PVMG);
+		sv_setsv(sv,PL_linestr);
+		(void)SvIOK_on(sv);
+		SvIV_set(sv, 0);
+		av_store(fileav, (I32)CopLINE(PL_curcop), sv);
+	    }
 	}
 
 	/* having changed the buffer, we must update PL_bufend */
@@ -861,39 +879,6 @@ S_scan_str(pTHX_ char *start, int keep_quoted, int keep_delims)
     else
 	PL_lex_stuff = sv;
     return s;
-}
-
-/*
- * S_force_next
- * When the lexer realizes it knows the next token (for instance,
- * it is reordering tokens for the parser) then it can call S_force_next
- * to know what token to return the next time the lexer is called.  Caller
- * will need to set PL_nextval[], and possibly PL_expect to ensure the lexer
- * handles the token correctly.
- */
-
-STATIC void
-S_force_next(pTHX_ I32 type)
-{
-#ifdef PERL_MAD
-    dVAR;
-    if (PL_curforce < 0)
-    start_force(PL_lasttoke);
-    PL_nexttoke[PL_curforce].next_type = type;
-    if (PL_lex_state != LEX_KNOWNEXT)
-    PL_lex_defer = PL_lex_state;
-    PL_lex_state = LEX_KNOWNEXT;
-    PL_lex_expect = PL_expect;
-    PL_curforce = -1;
-#else
-    PL_nexttype[PL_nexttoke] = type;
-    PL_nexttoke++;
-    if (PL_lex_state != LEX_KNOWNEXT) {
-  PL_lex_defer = PL_lex_state;
-  PL_lex_expect = PL_expect;
-  PL_lex_state = LEX_KNOWNEXT;
-    }
-#endif
 }
 
 #define XFAKEBRACK 128
@@ -961,12 +946,10 @@ S_scan_ident(pTHX_ register char *s, register const char *send, char *dest, STRL
     if (*s == '{') {
 	bracket = s;
 	s++;
+    } else if (ck_uni) {
+       /* we always call this with ck_uni == 0, so no need for check_uni() */
+       /* check_uni(); */
     }
-    /* we always call this with ck_uni == 0 (rafl) */
-    /*
-    else if (ck_uni)
-	check_uni();
-    */
     if (s < send)
 	*d = *s++;
     d[1] = '\0';
