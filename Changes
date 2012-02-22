@@ -1,5 +1,10 @@
 Changes for Devel-Declare
 
+0.006011 - 22 Feb 2012
+  - In XS, use PERL_NO_GET_CONTEXT for efficiency.
+  - Avoid using Test::Warn, which has previously been a troublesome
+    dependency.
+
 0.006010 - 07 Feb 2012
   - Fix workaround for unexported core symbols to avoid breaking
     compilation on non-threading builds of Perl 5.8.
