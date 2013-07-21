@@ -1,10 +1,11 @@
 package Devel::Declare;
+# ABSTRACT: Adding keywords to perl, in perl
 
 use strict;
 use warnings;
 use 5.008001;
 
-our $VERSION = '0.006013';
+our $VERSION = '0.006014';
 
 use constant DECLARE_NAME => 1;
 use constant DECLARE_PROTO => 2;

@@ -4,15 +4,13 @@ author:
   - 'Matt S Trout - <mst@shadowcat.co.uk> - original author'
 build_requires:
   B::Hooks::OP::Check: 0.19
-  ExtUtils::MakeMaker: 6.59
   Test::More: 0.88
+  Test::Requires: 0
 configure_requires:
   B::Hooks::OP::Check: 0.19
   ExtUtils::Depends: 0.302
-  ExtUtils::MakeMaker: 6.59
-distribution_type: module
-dynamic_config: 1
-generated_by: 'Module::Install version 1.06'
+dynamic_config: 0
+generated_by: 'ExtUtils::MakeMaker version 6.6907, CPAN::Meta::Converter version 2.131560'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -20,15 +18,15 @@ meta-spec:
 name: Devel-Declare
 no_index:
   directory:
-    - inc
     - t
+    - inc
 requires:
   B::Hooks::EndOfScope: 0.05
   B::Hooks::OP::Check: 0.19
   Scalar::Util: 1.11
   Sub::Name: 0
-  perl: 5.8.1
+  perl: 5.008001
 resources:
-  license: http://dev.perl.org/licenses/
+  homepage: http://git.shadowcat.co.uk/gitweb/gitweb.cgi?p=p5sagit/Devel-Declare.git
   repository: git://git.shadowcat.co.uk/p5sagit/Devel-Declare.git
-version: 0.006013
+version: 0.006014
