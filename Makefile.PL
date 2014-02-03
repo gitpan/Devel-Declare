@@ -23,7 +23,7 @@ sub MY::postamble {
 
 WriteMakefile(
     NAME => 'Devel::Declare',
-    AUTHOR => ['Matt S Trout - <mst@shadowcat.co.uk> - original author'],
+    AUTHOR => 'Matt S Trout - <mst@shadowcat.co.uk> - original author',
     VERSION_FROM => 'lib/Devel/Declare.pm',
     MIN_PERL_VERSION => '5.008001',
 
@@ -46,15 +46,23 @@ WriteMakefile(
     $mymeta_works ? (BUILD_REQUIRES => \%TEST_DEPS) : (),
 
     META_MERGE => {
+        'meta-spec' => { version => 2 },
         dynamic_config => 0,
-
         resources => {
             # r/w: p5sagit@git.shadowcat.co.uk:Devel-Declare.git
-            repository => 'git://git.shadowcat.co.uk/p5sagit/Devel-Declare.git',
-            homepage => 'http://git.shadowcat.co.uk/gitweb/gitweb.cgi?p=p5sagit/Devel-Declare.git',
+            repository => {
+                url => 'git://git.shadowcat.co.uk/p5sagit/Devel-Declare.git',
+                web => 'http://git.shadowcat.co.uk/gitweb/gitweb.cgi?p=p5sagit/Devel-Declare.git',
+                type => 'git',
+            },
+            bugtracker => {
+                mailto => 'bug-Devel-Declare@rt.cpan.org',
+                web => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Devel-Declare',
+            },
         },
     },
 
+    C => [ 'Declare.c' ],
     XS => { 'Declare.xs' => 'Declare.c' },
 
     $pkg->get_makefile_vars,
