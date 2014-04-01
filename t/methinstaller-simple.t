@@ -1,7 +1,6 @@
-#!/usr/bin/perl -w
-
 use strict;
-use Test::More 'no_plan';
+use warnings;
+use Test::More;
 
 my $Have_Devel_BeginLift;
 BEGIN {
@@ -124,3 +123,4 @@ is($o->$test_method2('this'), 'DeclareTest2, this', 'anon method with proto ok')
 
 is_deeply([ map { $_->() } @test_list ], [ 1, 2, 3, 4], 'binding ok');
 
+done_testing;

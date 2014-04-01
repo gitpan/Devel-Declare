@@ -4,7 +4,7 @@
       "Matt S Trout - <mst@shadowcat.co.uk> - original author"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "ExtUtils::MakeMaker version 6.88, CPAN::Meta::Converter version 2.133380",
+   "generated_by" : "ExtUtils::MakeMaker version 6.94, CPAN::Meta::Converter version 2.140640",
    "license" : [
       "perl_5"
    ],
@@ -55,5 +55,5 @@
          "web" : "http://git.shadowcat.co.uk/gitweb/gitweb.cgi?p=p5sagit/Devel-Declare.git"
       }
    },
-   "version" : "0.006015"
+   "version" : "0.006016"
 }
