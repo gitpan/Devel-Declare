@@ -10,7 +10,7 @@ configure_requires:
   B::Hooks::OP::Check: '0.19'
   ExtUtils::Depends: '0.302'
 dynamic_config: 0
-generated_by: 'ExtUtils::MakeMaker version 6.94, CPAN::Meta::Converter version 2.140640'
+generated_by: 'ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.142060'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -29,4 +29,4 @@ requires:
 resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Devel-Declare
   repository: git://git.shadowcat.co.uk/p5sagit/Devel-Declare.git
-version: '0.006016'
+version: '0.006017'

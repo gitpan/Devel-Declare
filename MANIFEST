@@ -3,7 +3,6 @@ Declare.xs
 lib/Devel/Declare.pm
 lib/Devel/Declare/Context/Simple.pm
 lib/Devel/Declare/MethodInstaller/Simple.pm
-maint/bump-version
 maint/Makefile.include
 maint/Makefile.PL.include
 Makefile.PL
